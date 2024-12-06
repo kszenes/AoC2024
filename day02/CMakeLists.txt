@@ -1,7 +1,8 @@
 set(CMAKE_TOOLCHAIN_FILE $ENV{HOME}/vcpkg/scripts/buildsystems/vcpkg.cmake)
+set(CMAKE_CXX_COMPILER "g++")
 cmake_minimum_required(VERSION 3.21)
 
-project(fmt_test)
+project(day02 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

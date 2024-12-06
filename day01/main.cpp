@@ -1,7 +1,7 @@
+#include "fmt/core.h"
 #include <algorithm>
 #include <fstream>
 #include <numeric>
-#include "fmt/core.h"
 #include <ranges>
 #include <string>
 #include <utility>

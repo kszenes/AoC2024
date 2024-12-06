@@ -1,12 +1,9 @@
-#include <algorithm>
+#include "fmt/core.h"
+#include "fmt/ranges.h"
 #include <fstream>
-#include <iostream>
-#include <numeric>
-#include <print>
 #include <ranges>
 #include <sstream>
 #include <string>
-#include <utility>
 #include <vector>
 
 auto check_line(const auto &reports) {
@@ -30,7 +27,7 @@ auto check_line(const auto &reports) {
 auto read_file(const std::string &fname, const bool is_dampned = false) {
   std::ifstream f(fname);
   if (!f.is_open()) {
-    std::println("File '{}' could not be opened", fname);
+    fmt::println("File '{}' could not be opened", fname);
     exit(1);
   }
 
@@ -50,11 +47,11 @@ auto read_file(const std::string &fname, const bool is_dampned = false) {
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
-    std::println("Provide input file");
+    fmt::println("Provide input file");
     exit(1);
   }
   auto num_valid_lines = read_file(argv[1]);
-  std::println("Number of valid lines: {}", num_valid_lines);
+  fmt::println("Number of valid lines: {}", num_valid_lines);
   auto num_valid_lines_damped = read_file(argv[1], true);
-  std::println("Number of valid lines damped: {}", num_valid_lines_damped);
+  fmt::println("Number of valid lines damped: {}", num_valid_lines_damped);
 }
