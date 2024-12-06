@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <fstream>
 #include <numeric>
-#include <print>
+#include "fmt/core.h"
 #include <ranges>
 #include <string>
 #include <utility>
@@ -13,7 +13,7 @@ auto read_locs(const std::string &fname)
 
   std::ifstream f(fname);
   if (!f.is_open()) {
-    std::println("File '{}' could not be opened", fname);
+    fmt::println("File '{}' could not be opened", fname);
     exit(1);
   }
 
@@ -51,12 +51,12 @@ auto get_sim_score(const auto &left, const auto &right) {
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
-    std::println("Provide input file");
+    fmt::println("Provide input file");
     exit(1);
   }
   auto [left, right] = read_locs(argv[1]);
   auto dist = get_distance(left, right);
-  std::println("dist = {}", dist);
+  fmt::println("dist = {}", dist);
   auto sim_score = get_sim_score(left, right);
-  std::println("sim_score = {}", sim_score);
+  fmt::println("sim_score = {}", sim_score);
 }
