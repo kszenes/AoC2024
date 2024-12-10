@@ -119,6 +119,44 @@ auto solve_grid(const auto &grid) {
   return res;
 }
 
+auto make_step2(const auto &grid, const auto &loc, const auto &val) -> int {
+  int ntrails = 0;
+  const auto [x, y] = loc;
+  const auto xsize = grid.xsize;
+  const auto ysize = grid.ysize;
+  const auto &nums = grid.nums;
+  if (val == 10) {
+    // fmt::println("Finished at ({}, {})", y, x);
+    return 1;
+  }
+
+  if (xsize > x + 1 && nums[y][x + 1] == val) {
+    ntrails += make_step2(grid, std::make_pair(x + 1, y), val + 1);
+    // fmt::println("{}: ->({}, {})", val, x+1, y);
+  }
+  if (x > 0 && nums[y][x - 1] == val) {
+   ntrails +=  make_step2(grid, std::make_pair(x - 1, y), val + 1);
+    // fmt::println("{}: ->({}, {})", val, x-1, y);
+  }
+  if (ysize > y + 1 && nums[y + 1][x] == val) {
+   ntrails +=  make_step2(grid, std::make_pair(x, y + 1), val + 1);
+    // fmt::println("{}: ->({}, {})", val, x, y+1);
+  }
+  if (y > 0 && nums[y - 1][x] == val) {
+   ntrails +=  make_step2(grid, std::make_pair(x, y - 1), val + 1);
+    // fmt::println("{}: ->({}, {})", val, x, y-1);
+  }
+  return ntrails;
+}
+
+auto solve_grid2(const auto &grid) {
+  int rating = 0;
+  for (const auto &start : grid.heads) {
+    rating += make_step2(grid, start, 1);
+  }
+  return rating;
+}
+
 int main(int argc, char *argv[]) {
   if (argc != 2) {
     fmt::println("Provide input file");
@@ -128,4 +166,6 @@ int main(int argc, char *argv[]) {
   // print_grid(grid);
   auto res1 = solve_grid(grid);
   fmt::println("res1 = {}", res1);
+  auto res2 = solve_grid2(grid);
+  fmt::println("res2 = {}", res2);
 }
