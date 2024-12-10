@@ -72,11 +72,68 @@ auto sort(auto v) {
   return v;
 }
 
+auto get_rsize(auto right) {
+  auto val = *right;
+  auto size = 0;
+  while (*right == val) {
+    ++size;
+    --right;
+  }
+  return size;
+}
+
+auto find_swap_loc(const auto left, const auto right) {
+  auto count = get_rsize(right);
+  auto val = -1;
+  return std::search_n(left, right, count, val);
+}
+
+auto sort2(auto v) {
+  auto left = v.begin();
+  auto right = v.end() - 1;
+
+  while (left != right) {
+    if (*left != -1) {
+      ++left;
+      continue;
+    }
+    if (*right == -1) {
+      --right;
+      continue;
+    }
+    auto rsize = get_rsize(right);
+    auto swap_loc = find_swap_loc(left, right);
+    auto swappable = swap_loc != right;
+    if (swappable) {
+      for (int i = 0; i < rsize; ++i) {
+        std::iter_swap(swap_loc, right);
+        ++swap_loc;
+        --right;
+      }
+    } else {
+      right -= rsize;
+    }
+    // fmt::println("v = {}", v);
+  }
+  return v;
+}
+
 auto count_val(const auto &v) {
   auto view = v | std::views::filter([](const auto e) { return e >= 0; });
   long long val = 0;
   for (const auto [index, elem] : std::views::enumerate(view)) {
     val += static_cast<long long>(index * elem);
+  }
+  // fmt::println("\nv    = {}\nview = {}\nval = {}", v, view, val);
+  return val;
+}
+
+auto count_val2(const auto &v) {
+  long long val = 0;
+  for (const auto [index, elem] : std::views::enumerate(v)) {
+    if (elem != -1) {
+      val += static_cast<long long>(index * elem);
+    }
   }
   // fmt::println("\nv    = {}\nview = {}\nval = {}", v, view, val);
   return val;
@@ -89,7 +146,12 @@ int main(int argc, char *argv[]) {
   }
   auto in = read_file(argv[1]);
   const auto reps = parse(in);
+  // fmt::println("resp = {}", reps);
   const auto sorted_reps = sort(reps);
   auto res1 = count_val(sorted_reps);
   fmt::println("res1 = {}", res1);
+  const auto sorted_reps2 = sort2(reps);
+  // fmt::println("sorted_res2 = {}", sorted_reps2);
+  auto res2 = count_val2(sorted_reps2);
+  fmt::println("res2 = {}", res2);
 }
