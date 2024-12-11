@@ -16,7 +16,7 @@ auto two_nums(const long long val) {
 }
 
 auto dfs(const auto val, const auto level = 0) {
-  if (level == 45) {
+  if (level == 50) {
     return 1;
   }
   const auto ndigits = get_digits(val);
@@ -32,10 +32,12 @@ auto dfs(const auto val, const auto level = 0) {
 
 int main(int argc, char *argv[]) {
   const std::vector<long long> stones{890, 0, 1, 935698, 68001, 3441397, 7221, 27};
-  std::vector<long long> children;
-  for (const auto stone : stones) {
-    children.push_back(dfs(stone, 0));
+  std::vector<long long> children(stones.size());
+#pragma omp parallel for
+  for (int i = 0; i < children.size(); ++i) {
+    auto val = dfs(stones[i], 0);
+    children[i] = val;
   }
   auto sum = std::ranges::fold_left(children, 0ll, std::plus{});
-  fmt::println("children = {}\nsum = {}", children, sum);
+  fmt::println("num_children = {}\nsum = {}", children, sum);
 }
