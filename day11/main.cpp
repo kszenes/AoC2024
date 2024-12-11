@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <ranges>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 auto get_digits(const unsigned long long val) -> unsigned long long {
@@ -29,39 +31,63 @@ auto dfs(const auto val, const auto max_level = 25, const auto level = 0) {
   }
 }
 
-auto memoize(const unsigned long long val, const auto max_level = 25) {
-  std::vector<unsigned long long> children_level(max_level);
-  std::vector<unsigned long long> curr{val};
-  std::vector<unsigned long long> prev;
+auto get_elems_and_freqs(const auto &curr_vals, const auto &curr_freqs)
+    -> std::pair<std::vector<unsigned long long>,
+                 std::vector<unsigned long long>> {
+  std::unordered_map<unsigned long long, unsigned long long> val2freq;
+  for (const auto [val, freq] : std::views::zip(curr_vals, curr_freqs)) {
+    val2freq[val] += freq;
+  }
+  std::vector<unsigned long long> vals;
+  std::vector<unsigned long long> freqs;
+
+  for (const auto &e : val2freq) {
+    vals.push_back(e.first);
+    freqs.push_back(e.second);
+  }
+
+  return {vals, freqs};
+}
+
+auto bfs(const unsigned long long val, const auto max_level = 25) {
+  std::vector<unsigned long long> prev_vals{val};
+  std::vector<unsigned long long> prev_freqs{1};
   for (int i = 0; i < max_level; ++i) {
-    children_level[i] = curr.size();
-    prev.swap(curr);
-    curr.clear();
-    for (const auto node : prev) {
-      const auto ndigits = get_digits(node);
-      if (node == 0) {
-        curr.push_back(1);
+    const auto [curr_vals, curr_freqs] =
+        get_elems_and_freqs(prev_vals, prev_freqs);
+    prev_vals.clear();
+    prev_freqs.clear();
+    for (const auto [val, freq] : std::views::zip(curr_vals, curr_freqs)) {
+      const auto ndigits = get_digits(val);
+      if (val == 0) {
+        prev_vals.push_back(1);
+        prev_freqs.push_back(freq);
       } else if (ndigits % 2 == 0) {
-        const auto [quot, rem] = two_nums(node, ndigits);
-        curr.push_back(quot);
-        curr.push_back(rem);
+        const auto [quot, rem] = two_nums(val, ndigits);
+        prev_vals.push_back(quot);
+        prev_vals.push_back(rem);
+        prev_freqs.push_back(freq);
+        prev_freqs.push_back(freq);
       } else {
-        curr.push_back(node * 2024);
+        prev_vals.push_back(val * 2024);
+        prev_freqs.push_back(freq);
       }
     }
   }
-  return children_level;
+  auto nleaves = std::ranges::fold_left(prev_freqs, 0, std::plus{});
+  return nleaves;
 }
 
 int main(int argc, char *argv[]) {
-  auto const zero_level = memoize(0, 26);
-  fmt::println("zero: levels = {}\n", zero_level);
+  // auto const zero_level = memoize(0, 26);
+  // fmt::println("zero: levels = {}\n", zero_level);
   const std::vector<unsigned long long> stones{890,   0,       1,    935698,
                                                68001, 3441397, 7221, 27};
   std::vector<unsigned long long> children(stones.size());
 #pragma omp parallel for
   for (int i = 0; i < children.size(); ++i) {
-    auto val = dfs(stones[i], 25, 0);
+    // auto val = dfs(stones[i], 25, 0);
+    auto val = bfs(stones[i], 75);
     children[i] = val;
   }
   auto sum = std::ranges::fold_left(children, 0ull, std::plus{});
