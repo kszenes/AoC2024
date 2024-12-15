@@ -36,7 +36,18 @@ fn parse_file(fname: &String) -> Problem {
             continue;
         }
         if reading_grid {
-            grid.push(line.chars().collect());
+            let mut wide_row: Vec<char> = Vec::new();
+            for e in line.chars() {
+                match e {
+                    '#' => wide_row.extend(vec!['#', '#']),
+                    'O' => wide_row.extend(vec!['[', ']']),
+                    '.' => wide_row.extend(vec!['.', '.']),
+                    '@' => wide_row.extend(vec!['@', '.']),
+                    _ => panic!("Problem parsing")
+                }
+            }
+
+            grid.push(wide_row);
         } else {
             moves.extend(line.chars());
         }
@@ -73,53 +84,101 @@ fn print_problem(problem: &Problem) {
     println!("Robot located: {loc:?}\nmoves = {moves:?}");
 }
 
-fn get_new_slice(slice: &[char], _do_reverse: bool) -> Vec<char> {
-    if let Some((index, &value)) = slice.iter().enumerate().find(|(_, &ch)| ch == '#') {
-        println!("Found value '{}' at index {}", value, index);
+fn get_new_slice(slice: ArrayView1<char>, _do_reverse: bool) -> Option<Vec<char>> {
+    let (index, val) = slice
+        .iter()
+        .enumerate()
+        .find(|(_, &x)| x == '#' || x == '.')
+        .unwrap();
+    // println!("slice = {slice}");
+    // println!("Found '{val}' at {index}");
+
+    if *val == '.' {
+        let mut new_range: Vec<char> = Vec::new();
+        new_range.push('.');
+        let pre = slice.slice(s![0..index]);
+        let post = slice.slice(s![index + 1..]);
+        new_range.extend(pre);
+        new_range.extend(post);
+        // println!("new_range = {new_range:?}");
+        return Some(new_range);
     }
-
-    let slice_iter = slice.iter();
-
-    let moved: Vec<char> = slice_iter
-        .filter(|&&x| x == '@' || x == 'O')
-        .copied()
-        .collect();
-
-    let mut new_slice: Vec<char> = vec!['.'; slice.len() - moved.len() - 1];
-    new_slice.extend(&moved);
-    new_slice.push('#');
-    return new_slice;
+    return None;
 }
 
 fn make_step(grid: &mut Array2<char>, loc: &mut (usize, usize), dir: char) {
     match dir {
-        '^' => {}
-        '>' => {
-            let slice = grid.slice_mut(s![loc.0,loc.1..]);
-            println!("{:?}", slice);
-            // let new_slice = get_new_slice(slice, false);
-            // slice.copy_from_slice(&new_slice);
-            // println!("{:?}", slice);
+        '^' => {
+            let col = grid.column(loc.1);
+            let slice = col.slice(s![..loc.0 + 1; -1]);
+            if let Some(new_slice) = get_new_slice(slice, false) {
+                let arr = Array1::from_vec(new_slice);
+                let mut new_loc: (usize, usize) = (0, 0);
+                for i in 0..arr.len() {
+                    grid[[loc.0 - i, loc.1]] = arr[i];
+                    if arr[i] == '@' {
+                        new_loc = (loc.0 - i, loc.1);
+                    }
+                }
+                *loc = new_loc.clone();
+            }
         }
-        'v' => {}
+        'v' => {
+            let slice_range = s![loc.0.., loc.1];
+            let slice = grid.slice(&slice_range);
+            if let Some(new_slice) = get_new_slice(slice, false) {
+                let arr = Array1::from_vec(new_slice);
+                grid.slice_mut(slice_range).assign(&arr);
+                *loc = (loc.0 + arr.iter().position(|&x| x == '@').unwrap(), loc.1);
+            }
+        }
+        '>' => {
+            let slice_range = s![loc.0, loc.1..];
+            let slice = grid.slice(&slice_range);
+            if let Some(new_slice) = get_new_slice(slice, false) {
+                let arr = Array1::from_vec(new_slice);
+                grid.slice_mut(slice_range).assign(&arr);
+                *loc = (loc.0, loc.1 + arr.iter().position(|&x| x == '@').unwrap());
+            }
+        }
         '<' => {
-            let slice = grid.slice_mut(s![loc.0,..loc.1]);
-            println!("{:?}", slice);
-
+            let slice_range = s![loc.0,..loc.1 + 1; -1];
+            let slice = grid.slice(&slice_range);
+            if let Some(new_slice) = get_new_slice(slice, false) {
+                let arr = Array1::from_vec(new_slice);
+                grid.slice_mut(slice_range).assign(&arr);
+                *loc = (loc.0, loc.1 - arr.iter().position(|&x| x == '@').unwrap());
+            }
         }
         _ => println!("Error"),
     }
 }
 
-fn solve_problem(problem: &mut Problem) {
-    let moves = problem.moves.clone();
-    make_step(&mut problem.grid, &mut problem.loc, '<');
-    // print_problem(problem);
+fn evaluate_gps_coords(grid: &Array2<char>) -> usize {
+    let mut coords: Vec<(usize, usize)> = Vec::new();
+    for (row_idx, row) in grid.outer_iter().enumerate() {
+        for (col_idx, val) in row.iter().enumerate() {
+            if *val == 'O' {
+                coords.push((row_idx, col_idx));
+            }
+        }
+    }
+    let sum = coords.iter().fold(0, |acc, &x| acc + (x.1 + 100 * x.0));
+    return sum;
 }
+
+fn solve_problem(problem: &mut Problem) {
+    for m in &problem.moves {
+        make_step(&mut problem.grid, &mut problem.loc, *m);
+    }
+    let sum = evaluate_gps_coords(&problem.grid);
+    println!("sum = {sum}");
+}
+
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let mut problem = parse_file(&args[1]);
-    print_problem(&problem);
-    solve_problem(&mut problem);
+    // print_problem(&problem);
+    solve_problem2(&mut problem);
 }
