@@ -88,17 +88,17 @@ auto do_op(Problem &problem, const Op &op, const int literal) {
   switch (op) {
   case Op::adv:
     // fmt::println("adv({})", operand);
-    a = a / static_cast<int>(std::pow(2, combo));
+    a = (a >> combo); 
     ptr += 2;
     break;
   case Op::bdv:
     // fmt::println("bdv({})", operand);
-    b = a / static_cast<int>(std::pow(2, combo));
+    b = (a >> combo);
     ptr += 2;
     break;
   case Op::cdv:
     // fmt::println("cdv({})", operand);
-    c = a / static_cast<int>(std::pow(2, combo));
+    c = (a >> combo);
     ptr += 2;
     break;
   case Op::bxl:
@@ -108,7 +108,7 @@ auto do_op(Problem &problem, const Op &op, const int literal) {
     break;
   case Op::bst:
     // fmt::println("bst({})", operand);
-    b = combo % 8;
+    b = combo & 7;
     ptr += 2;
     break;
   case Op::jnz:
@@ -121,7 +121,7 @@ auto do_op(Problem &problem, const Op &op, const int literal) {
     ptr += 2;
     break;
   case Op::out:
-    fmt::print("{},", combo % 8);
+    fmt::print("{},", combo & 7);
     ptr += 2;
     break;
   }
