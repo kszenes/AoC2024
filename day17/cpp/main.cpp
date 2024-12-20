@@ -7,7 +7,7 @@
 #include <vector>
 
 struct Problem {
-  int a, b, c;
+  long long a, b, c;
   std::vector<int> program;
   int ptr = 0;
 };
@@ -18,7 +18,7 @@ auto read_file(const std::string &fname) -> Problem {
     fmt::println("File '{}' could not be opened", fname);
     exit(1);
   }
-  int a, b, c;
+  long long a, b, c;
   std::string line;
 
   {
@@ -27,7 +27,7 @@ auto read_file(const std::string &fname) -> Problem {
                std::views::transform(
                    [](const auto &e) { return std::string_view(e); }) |
                std::ranges::to<std::vector<std::string>>();
-    a = std::stoi(str.back());
+    a = std::stoll(str.back());
   }
   {
     std::getline(f, line);
@@ -35,7 +35,7 @@ auto read_file(const std::string &fname) -> Problem {
                std::views::transform(
                    [](const auto &e) { return std::string_view(e); }) |
                std::ranges::to<std::vector<std::string>>();
-    b = std::stoi(str.back());
+    b = std::stoll(str.back());
   }
   {
     std::getline(f, line);
@@ -68,7 +68,7 @@ auto print_problem(const auto &problem) {
 
 enum class Op { adv, bxl, bst, jnz, bxc, out, bdv, cdv };
 
-auto literal2combo(const Problem &problem, const int literal) {
+auto literal2combo(const Problem &problem, const long long literal) {
   const auto &[a, b, c, program, ptr] = problem;
   switch (literal) {
   case 4:
@@ -122,6 +122,7 @@ auto do_op(Problem &problem, const Op &op, const int literal) {
     break;
   case Op::out:
     fmt::print("{},", combo & 7);
+    // print_problem(problem);
     ptr += 2;
     break;
   }
@@ -132,7 +133,6 @@ void solve_problem(Problem &p) {
     const Op op = static_cast<Op>(p.program.at(p.ptr));
     const int arg = p.program.at(p.ptr + 1);
     do_op(p, op, arg);
-    // print_problem(p);
   }
   fmt::println("");
 }

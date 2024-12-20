@@ -3,3 +3,53 @@ Register B: 0
 Register C: 0
 
 Program: 2,4,1,5,7,5,1,6,4,1,5,5,0,3,3,0
+
+# The issue is that truncation is not ivertible
+
+2,4: bst(A):    B = A % 8     (B = A & ...00111)
+1,5: bxl(5):    B = B ^ 5     (B = B ^ ...00011)
+7,5: cdv(B):    C = A / 2^B   (C = A >> B)
+1,6: bxl(6):    B = B ^ 6     (B = B ^ ...00110)
+4,1: bxc():     B = B ^ C     
+5,5: out(B):    print(B % 8)
+0,3: adv(3):    A = A / 2^3   (A = A >> 3)
+3,0: jnz(0):    (A == 0) ? jump(0) : exit
+
+B = (A & ...0111) ^ ...0011    # Take last 3 bits of A and flip last two
+C = A >> B
+B = (B ^ ...0110) ^ C
+print(B)
+A = A >> 3
+
+def compute_next(A0):
+    A1 = A0 >> 3
+    C1 = A0 >> ((A0 % 8) ^ 5)
+    B1 = (((A0 % 8) ^ 5) ^ 6) ^ C1
+    print(B1 % 8)
+    return A1, B1, C1
+
+
+--- Combine ---
+B1 = (((A0 % 8) ^ 5) ^ 6) ^ C1 = (((A0 % 8) ^ 5) ^ 6) ^ (A0 >> ((A0 % B0) ^ 5))
+A1 = A0 >> 3
+
+
+
+
+--- Combine 2 ---
+A1 = A0 >> 3
+C1 = A0 >> ((A0 % 8) ^ 5)
+B1 = (((A0 % 8) ^ 5) ^ 6) ^ C1
+
+--- invert ---
+A = ?
+B = 0
+C = 0
+
+
+A = A << 3
+print(B)
+B = B ^ C
+B = B ^ ...0110
+C = A << B
+...
