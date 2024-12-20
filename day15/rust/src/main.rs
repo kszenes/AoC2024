@@ -5,8 +5,6 @@ use std::io::{BufRead, BufReader};
 
 struct Problem {
     grid: Array2<char>,
-    xsize: usize,
-    ysize: usize,
     moves: Vec<char>,
     loc: (usize, usize),
 }
@@ -43,7 +41,7 @@ fn parse_file(fname: &String) -> Problem {
                     'O' => wide_row.extend(vec!['[', ']']),
                     '.' => wide_row.extend(vec!['.', '.']),
                     '@' => wide_row.extend(vec!['@', '.']),
-                    _ => panic!("Problem parsing")
+                    _ => panic!("Problem parsing"),
                 }
             }
 
@@ -60,25 +58,16 @@ fn parse_file(fname: &String) -> Problem {
     let grid: Array2<char> =
         Array::from_shape_vec((ysize, xsize), grid.concat()).expect("Failed conversion");
 
-    return Problem {
-        grid,
-        xsize,
-        ysize,
-        moves,
-        loc,
-    };
+    return Problem { grid, moves, loc };
 }
 
 fn print_problem(problem: &Problem) {
     let Problem {
         grid,
-        xsize,
-        ysize,
         loc,
         moves,
     } = &problem;
 
-    println!("Grid: {ysize} x {xsize}");
     println!("{}", grid);
 
     println!("Robot located: {loc:?}\nmoves = {moves:?}");
@@ -175,10 +164,8 @@ fn solve_problem(problem: &mut Problem) {
     println!("sum = {sum}");
 }
 
-
 fn main() {
     let args: Vec<String> = env::args().collect();
     let mut problem = parse_file(&args[1]);
-    // print_problem(&problem);
-    solve_problem2(&mut problem);
+    solve_problem(&mut problem);
 }
