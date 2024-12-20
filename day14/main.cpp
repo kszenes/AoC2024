@@ -1,12 +1,13 @@
 #include "fmt/core.h"
 #include "fmt/ranges.h"
 #include <algorithm>
+#include <chrono>
 #include <cstdlib>
 #include <fstream>
+#include <iostream>
 #include <ranges>
 #include <sstream>
 #include <string>
-#include <vector>
 
 using val_t = int;
 
@@ -48,7 +49,7 @@ auto parse_line(std::ifstream &stream) -> Robot {
 
 auto print_problem(const Problem &problem) {
   const auto &[robots, xsize, ysize] = problem;
-  fmt::println("Size = ({}, {})", xsize, ysize);
+  // fmt::println("Size = ({}, {})", xsize, ysize);
   // for (const auto &[i, robot] : std::views::enumerate(robots)) {
   //   const auto &[pos, vel] = robot;
   //   fmt::println("{}: pos = ({}, {}); vel = ({}, {})", i, pos.x, pos.y,
@@ -61,14 +62,16 @@ auto print_problem(const Problem &problem) {
       const Coord loc = {x, y};
       int nrob = std::ranges::count(robots, loc, &Robot::pos);
       if (nrob) {
-        fmt::print("{}", nrob);
+        // fmt::print("{}", nrob);
+        fmt::print("*");
       } else {
-        fmt::print(".");
+        fmt::print(" ");
       }
     }
     fmt::println("");
   }
   fmt::println("");
+  fflush(stdout);
 }
 
 auto read_file(const std::string &fname) -> Problem {
@@ -171,10 +174,21 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   auto problem = read_file(argv[1]);
-  int nsec = 100;
-  // print_problem(problem);
+  print_problem(problem);
+  int init = 500;
+  char c;
+  solve_problem(problem, init);
 
-  solve_problem(problem, nsec);
-  // print_problem(problem);
-  count_quadrants(problem);
+  int i = init;
+  while (true) {
+    fmt::println("================================================= Second {} "
+                 "=====================================================n",
+                 i + 1);
+    fmt::println("============================================================="
+                 "====================================================n");
+    solve_problem(problem, 1);
+    print_problem(problem);
+    std::cin.get();
+    ++i;
+  }
 }
